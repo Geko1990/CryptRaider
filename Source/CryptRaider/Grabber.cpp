@@ -60,17 +60,8 @@ void UGrabber::Grab()
 	if (!PhysicsHandle)
 		return;
 
-	UWorld* World = GetWorld();
-	FVector Start = GetComponentLocation();
-	FVector End = Start + GetForwardVector() * MaxGrabDistance;
-	DrawDebugLine(World, Start, End, FColor::Red);
-	DrawDebugSphere(World, End, 10, 10, FColor::Blue, false, 5);
-
-	FCollisionShape Sphere = FCollisionShape::MakeSphere(GrabRadius);
 	FHitResult HitResult;
-	bool hasHit = World->SweepSingleByChannel(
-		HitResult, Start, End, FQuat::Identity, 
-		ECC_GameTraceChannel2, Sphere);
+	bool hasHit = GetGrabbableInReach(HitResult);
 
 	if (hasHit) {
 		UPrimitiveComponent* HitComponent = HitResult.GetComponent();
@@ -87,5 +78,20 @@ UPhysicsHandleComponent* UGrabber::GetPhysicsHandle() const
 		UE_LOG(LogTemp, Error, TEXT("Grabber Requires a UPhysicsHandlerComponent!"));
 	}
 	return Result;
+}
+
+bool UGrabber::GetGrabbableInReach(FHitResult &HitResultOut) const
+{
+	UWorld* World = GetWorld();
+	FVector Start = GetComponentLocation();
+	FVector End = Start + GetForwardVector() * MaxGrabDistance;
+	DrawDebugLine(World, Start, End, FColor::Red);
+	DrawDebugSphere(World, End, 10, 10, FColor::Blue, false, 5);
+
+	FCollisionShape Sphere = FCollisionShape::MakeSphere(GrabRadius);
+
+	return World->SweepSingleByChannel(
+		HitResultOut, Start, End, FQuat::Identity, 
+		ECC_GameTraceChannel2, Sphere);
 }
 
